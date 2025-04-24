@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <title>多产品单位克数价格比较</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-md shadow-md">
+        <div class="flex justify-end mb-2">
+            <a href="/history_page" class="bg-gray-700 hover:bg-gray-800 text-white text-sm px-3 py-1 rounded-md shadow-sm">
+                历史记录
+            </a>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-4">多产品单位克数价格比较</h1>
+        <div id="product-form">
+            <div class="mb-3">
+                <label for="product-name" class="block text-sm font-medium text-gray-700">商品名称</label>
+                <input type="text" id="product-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div class="mb-3">
+                <label for="product-price" class="block text-sm font-medium text-gray-700">商品价格</label>
+                <input type="number" id="product-price" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div class="mb-3">
+                <label for="product-weight" class="block text-sm font-medium text-gray-700">商品重量（克）</label>
+                <input type="number" id="product-weight" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <button id="add-product" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">添加商品</button>
+        </div>
+        <div id="product-list" class="mt-6">
+            <h2 class="text-lg font-bold mb-2">商品列表</h2>
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2">商品名称</th>
+                        <th class="border border-gray-300 px-4 py-2">单位克数价格（元/克）</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body"></tbody>
+            </table>
+            <div id="cheapest-product" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const productList = [];
+        const addProductButton = document.getElementById('add-product');
+        const productNameInput = document.getElementById('product-name');
+        const productPriceInput = document.getElementById('product-price');
+        const productWeightInput = document.getElementById('product-weight');
+        const productTableBody = document.getElementById('product-table-body');
+        const cheapestProductDiv = document.getElementById('cheapest-product');
+
+        addProductButton.addEventListener('click', () => {
+            const name = productNameInput.value;
+            const price = parseFloat(productPriceInput.value);
+            const weight = parseFloat(productWeightInput.value);
+
+            if (name &&!isNaN(price) &&!isNaN(weight) && weight > 0) {
+                const unitPrice = price / weight;
+                productList.push({ name, unitPrice });
+                updateProductList();
+                productNameInput.value = '';
+                productPriceInput.value = '';
+                productWeightInput.value = '';
+                // ✅ 发送数据到后端存储
+                fetch('http://127.0.0.1:5000/add_record', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, price, weight })
+                }).then(response => {
+                    if (!response.ok) {
+                        alert("保存到历史记录失败！");
+                    }
+                });
+            } else {
+                alert('请输入有效的商品名称、价格和重量（重量必须为正数）。');
+            }
+        });
+
+        function updateProductList() {
+            productTableBody.innerHTML = '';
+            productList.forEach(product => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const unitPriceCell = document.createElement('td');
+
+                nameCell.textContent = product.name;
+                unitPriceCell.textContent = product.unitPrice.toFixed(2);
+
+                nameCell.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+                unitPriceCell.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+
+                row.appendChild(nameCell);
+                row.appendChild(unitPriceCell);
+                productTableBody.appendChild(row);
+            });
+
+            if (productList.length > 0) {
+                const cheapestProduct = productList.reduce((prev, current) => (prev.unitPrice < current.unitPrice)? prev : current);
+                cheapestProductDiv.textContent = `最便宜的商品是 ${cheapestProduct.name}，单位克数价格为 ${cheapestProduct.unitPrice.toFixed(2)} 元/克。`;
+            }
+        }
+    </script>
+</body>
+
+</html>
