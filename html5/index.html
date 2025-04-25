@@ -75,7 +75,7 @@
                 productPriceInput.value = '';
                 productWeightInput.value = '';
                 // ✅ 发送数据到后端存储
-                fetch('http://127.0.0.1:5000/add_record', {
+                fetch('https://calculator2-0-aqge.onrender.com/add_record', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, price, weight })
