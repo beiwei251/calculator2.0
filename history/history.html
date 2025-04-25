@@ -38,7 +38,7 @@
     <script>
         let allRecords = []; // 存全部数据，方便后续过滤
         // 获取历史记录数据
-        fetch('http://127.0.0.1:5000/history')
+        fetch('https://calculator2-0-aqge.onrender.com/history')
            .then(response => response.json())
            .then(data => {
                 allRecords = data;
